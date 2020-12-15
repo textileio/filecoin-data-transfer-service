@@ -1,0 +1,31 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+cover.out
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# vscode config folder
+.vscode/
+
+# File names that can be used for testing.
+new
+myfile
+myfile2
+
+# StorageConfig name that can be used for testing.
+pconfig.pow
+
+tags
+
+build/
