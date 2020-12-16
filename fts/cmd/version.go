@@ -41,7 +41,7 @@ var versionCmd = &cobra.Command{
 			},
 		)
 
-		s := spin.New("%s Getting Powergate server build info...")
+		s := spin.New("%s Getting API build info...")
 		s.Start()
 		info, err := powClient.BuildInfo(ctx)
 		s.Stop()
