@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
 	"time"
 
@@ -26,20 +28,20 @@ var (
 )
 
 func init() {
-	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Run through steps without pushing data to Powergate API.")
-	runCmd.Flags().BoolVarP(&mainnet, "mainnet", "m", false, "Sets staging limits based on localnet or mainnet.")
-	runCmd.Flags().BoolVarP(&retryErrors, "retry-errors", "e", false, "Retry tasks with error status")
-	runCmd.Flags().StringVar(&taskFolder, "folder", "f", "Folder with organized tasks of directories or files")
-	runCmd.Flags().BoolVarP(&hiddenFiles, "include-all", "i", false, "Include hidden files & folders from top level folder")
-	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
-	runCmd.Flags().StringVarP(&resultsOut, "output", "o", "results.json", "The location to store intermediate and final results.")
-	runCmd.Flags().BoolVarP(&resume, "resume", "r", false, "Resume tasks stored in local results output file.")
+	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "run through steps without pushing data to Powergate API.")
+	runCmd.Flags().BoolVarP(&mainnet, "mainnet", "m", false, "sets staging limits based on localnet or mainnet.")
+	runCmd.Flags().BoolVarP(&retryErrors, "retry-errors", "e", false, "retry tasks with error status.")
+	runCmd.Flags().StringVar(&taskFolder, "folder", "f", "path to folder containing directories or files to process.")
+	runCmd.Flags().BoolVarP(&hiddenFiles, "include-all", "i", false, "include hidden files & folders from the top-level folder.")
+	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "the reverse proxy multiaddr of IPFS node.")
+	runCmd.Flags().StringVarP(&resultsOut, "output", "o", "results.json", "the location to store intermediate and final results.")
+	runCmd.Flags().BoolVarP(&resume, "resume", "r", false, "resume tasks stored in the local results output file.")
 
 	// Not included in the public commands
-	runCmd.Flags().Int64Var(&concurrent, "concurrent", 1000, "Max concurrent tasks being processed")
-	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 0, "Maximum bytes of all tasks queued on staging")
-	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "Maximum bytes of a single deal")
-	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "Minimum bytes of a single deal")
+	runCmd.Flags().Int64Var(&concurrent, "concurrent", 1000, "the maximum concurrent tasks.")
+	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 0, "the maximum bytes of all tasks queued on staging.")
+	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "the maximum bytes of a single deal.")
+	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "the minimum bytes of a single deal.")
 	err := runCmd.Flags().MarkHidden("concurrent")
 	checkErr(err)
 	err = runCmd.Flags().MarkHidden("max-staged-bytes")
@@ -122,7 +124,7 @@ var runCmd = &cobra.Command{
 
 		rc := PipelineConfig{
 			token:           viper.GetString("token"),
-			serverAddress:   viper.GetString("serverAddress"),
+			serverAddress:   viper.GetString("server-address"),
 			ipfsrevproxy:    ipfsrevproxy,
 			maxStagingBytes: maxStagedBytes,
 			minDealBytes:    minDealBytes,
@@ -141,6 +143,24 @@ var runCmd = &cobra.Command{
 
 // OutputProgress starts the pipeline and outputs progress to file or terminal.
 func OutputProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
+	// Ensure dryRun tasks are never stored in partial state
+	if conf.dryRun {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			<-c
+			for i := range allTasks {
+				allTasks[i].Error = ""
+				allTasks[i].Stage = DryRunComplete
+			}
+			err := storeResults(resultsOut, allTasks)
+			if err != nil {
+				Warning("There was an error cleaning up your dry-run. You should manually delete %s if it exists.", resultsOut)
+			}
+			os.Exit(1)
+		}()
+	}
+
 	progress := uiprogress.New()
 	progress.Start()
 	progressBars := make(map[string](chan Task))

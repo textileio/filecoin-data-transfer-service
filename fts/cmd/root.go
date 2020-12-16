@@ -22,10 +22,10 @@ var (
 		Long:              `Filecoin data transfer service client for migrating big data`,
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))
+			err := viper.BindPFlag("server-address", cmd.Root().PersistentFlags().Lookup("server-address"))
 			checkErr(err)
 
-			target := viper.GetString("serverAddress")
+			target := viper.GetString("server-address")
 
 			powClient, err = client.NewClient(target)
 			checkErr(err)
@@ -53,13 +53,13 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.Flags().BoolP("version", "v", false, "display version information for fts and the connected server")
-	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
-	rootCmd.PersistentFlags().StringP("token", "t", "", "user auth token")
+	rootCmd.Flags().BoolP("version", "v", false, "display version information for fts and the connected API")
+	rootCmd.PersistentFlags().String("server-address", "127.0.0.1:5002", "the address of the Powergate API")
+	rootCmd.PersistentFlags().StringP("token", "t", "", "the user auth token")
 }
 
 func initConfig() {
-	viper.SetEnvPrefix("POW")
+	viper.SetEnvPrefix("FTS")
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
