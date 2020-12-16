@@ -1,4 +1,4 @@
-# textile
+# filecoin-data-transfer-service
 
 [![Made by Textile](https://img.shields.io/badge/made%20by-Textile-informational.svg?style=popout-square)](https://textile.io)
 [![Chat on Slack](https://img.shields.io/badge/slack-slack.textile.io-informational.svg?style=popout-square)](https://slack.textile.io)
@@ -92,7 +92,7 @@ Default output is stored in `results.json`. Each task is an entry in a results a
  {
   "name": "high-res-pdfs",
   "path": "/archives/tasks/n-q/high-res-pdfs",
-  "bytes": 9073,
+  "bytes": 9073000000,
   "cid": "QmPWjS6YizvHTiP5oVAycvSPJBAhvSHnKsDHdr6ex54VzP",
   "jobID": "441c9c6e-f5c9-4933-913f-5a739ccb0b38",
   "stage": "Complete",
