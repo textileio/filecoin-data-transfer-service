@@ -143,7 +143,8 @@ var runCmd = &cobra.Command{
 
 // OutputProgress starts the pipeline and outputs progress to file or terminal.
 func OutputProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
-	// Ensure dryRun tasks are never stored in partial state
+	progressBars := make(map[string](chan Task))
+	// Ensure dryRun tasks are never stored in partial state. TODO create single fn for all app
 	if conf.dryRun {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
@@ -156,6 +157,7 @@ func OutputProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
 			err := storeResults(resultsOut, allTasks)
 			if err != nil {
 				Warning("There was an error cleaning up your dry-run. You should manually delete %s if it exists.", resultsOut)
+				NonFatal(err)
 			}
 			os.Exit(1)
 		}()
@@ -163,7 +165,6 @@ func OutputProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
 
 	progress := uiprogress.New()
 	progress.Start()
-	progressBars := make(map[string](chan Task))
 
 	taskUpdates := Start(pendingTasks, conf)
 
