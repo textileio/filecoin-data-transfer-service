@@ -15,7 +15,7 @@ var (
 	powClient *client.Client
 
 	// Repo organization/repo where client releases are published
-	Repo = "textileio/textile"
+	Repo = "textileio/filecoin-data-transfer-service"
 
 	cmdTimeout = time.Second * 10
 
