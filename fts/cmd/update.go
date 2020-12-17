@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/blang/semver"
@@ -40,8 +41,10 @@ func getLatestRelease() (*su.Release, error) {
 	}
 
 	latest, found, err := updater.DetectLatest(Repo)
-	if err != nil || !found {
+	if err != nil {
 		return nil, err
+	} else if !found {
+		return nil, fmt.Errorf("Release not found")
 	}
 	return latest, nil
 }
