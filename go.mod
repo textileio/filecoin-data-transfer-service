@@ -12,5 +12,5 @@ require (
 	github.com/rhysd/go-github-selfupdate v1.2.2
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
-	github.com/textileio/powergate v1.2.4
+	github.com/textileio/powergate v1.2.5
 )
